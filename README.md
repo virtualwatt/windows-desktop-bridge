@@ -10,6 +10,14 @@ Status: working. Tested end-to-end on a Windows 11 machine
 (video and audio verified in the recording), screenshots, clicks,
 keyboard input, window listing and focus.
 
+> **Security warning:** this bridge gives an AI agent full control of
+> the desktop — screen, mouse and keyboard — while connected.
+> Protection today is a Bearer token over HTTPS (Tailscale Funnel)
+> plus OBS recording of every session. There is no sandboxing, no
+> per-action confirmation and no audit trail beyond the recording.
+> Use at your own risk, on machines you own, and read the code first.
+> Improvements are welcome in your own fork.
+
 ## Session model: connect / disconnect
 
 Every screen, mouse and keyboard tool works **only while connected**:
