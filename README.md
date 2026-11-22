@@ -88,15 +88,20 @@ tunnel and register the connector on the Muse side.
 ## Tailscale (alternative to a public tunnel)
 
 `install_tailscale.bat` installs Tailscale via Chocolatey (skipping
-it if already installed) and connects the machine to the tailnet
+it if already installed), connects the machine to the tailnet
 (`tailscale up --unattended`; interactive browser login by default,
 or set `TAILSCALE_AUTHKEY` for unattended setup; optional
-`TAILSCALE_HOSTNAME`). Tailscale SSH stays off — Tailscale is only
-the transport. The bridge binds the host from `BRIDGE_HOST`
-(default `127.0.0.1`); `start_bridge.bat` sets it to this machine's
-Tailscale IP when Tailscale is up, so the port is reachable only
-inside the tailnet. Muse then connects to
-`http://<tailscale-ip>:8765/mcp` from inside the same tailnet.
+`TAILSCALE_HOSTNAME`), then enables Tailscale Funnel for port 8765
+and sets `BRIDGE_HOST=127.0.0.1`. Tailscale SSH stays off.
+
+Why Funnel: Muse's credential substitution does not happen on the
+tailnet proxy path, so the bridge is reached over public HTTPS at
+`https://<machine>.<tailnet>.ts.net/mcp` instead, with the Bearer
+token as the protection. The bridge binds the host from
+`BRIDGE_HOST` (default `127.0.0.1`); Funnel forwards to
+`127.0.0.1:8765`, so keep the bind on localhost when Funnel is used.
+`start_bridge.bat` falls back to the Tailscale IP only when
+`BRIDGE_HOST` is unset, which suits tailnet-only local tests.
 
 ## Limits of this skeleton
 

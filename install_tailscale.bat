@@ -79,4 +79,26 @@ echo Tailscale status:
 echo.
 echo This machine's Tailscale IP:
 "%TAILSCALE_EXE%" ip -4
+
+rem --- Funnel -------------------------------------------------------------
+rem Expose the bridge (127.0.0.1:8765) over public HTTPS at this
+rem machine's MagicDNS name. Muse reaches it through the standard
+rem egress path this way; the Bearer token stays the protection.
+rem If Funnel is not allowed for this node yet, the command prints a
+rem link to the admin console - enable it there and run this again.
+echo.
+echo Enabling Tailscale Funnel for port 8765...
+"%TAILSCALE_EXE%" funnel --bg 8765
+if errorlevel 1 (
+    echo Funnel setup failed. If the output above shows an admin link,
+    echo enable Funnel there and run this file again.
+    pause
+    exit /b 1
+)
+"%TAILSCALE_EXE%" funnel status
+
+rem The bridge must bind localhost for Funnel to reach it.
+setx BRIDGE_HOST 127.0.0.1 >nul
+echo BRIDGE_HOST set to 127.0.0.1 (takes effect in new terminals).
+echo Start the bridge with start_bridge.bat from a new terminal.
 pause
