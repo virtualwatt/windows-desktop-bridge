@@ -1,6 +1,7 @@
 @echo off
 rem Start the Windows desktop bridge MCP server.
-rem Dependencies are managed by uv (pyproject.toml + uv.lock).
+rem Run install_bridge.bat first (installs Python, uv, OBS Studio
+rem and syncs dependencies). This file only starts the server.
 
 cd /d "%~dp0"
 
@@ -27,13 +28,6 @@ rem set OBS_WS_HOST=127.0.0.1
 rem set OBS_WS_PORT=4455
 
 rem --- Run ------------------------------------------------------------
-uv sync
-if errorlevel 1 (
-    echo uv sync failed.
-    pause
-    exit /b 1
-)
-
 echo Starting bridge on http://127.0.0.1:8765/mcp (OBS profile: %OBS_PROFILE%)
 uv run python windows_desktop_bridge.py
 pause

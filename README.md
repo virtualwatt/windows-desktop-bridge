@@ -38,6 +38,13 @@ Tools: `screenshot`, `click`, `double_click`, `type_text`, `key`,
 Dependencies are managed with [uv](https://docs.astral.sh/uv/):
 `pyproject.toml` declares them, `uv.lock` pins exact versions.
 
+On Windows, `install_bridge.bat` does the setup: it installs
+Chocolatey if missing, then Python, uv and OBS Studio through it
+(skipping whatever is already installed), and finishes with `uv sync`.
+`start_bridge.bat` only starts the server.
+
+Manual equivalent:
+
 ```powershell
 uv sync
 $env:BRIDGE_TOKEN = "<long random token generated on this machine>"
