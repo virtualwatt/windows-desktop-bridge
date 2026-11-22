@@ -3,7 +3,7 @@ rem Diagnostics for the windows-desktop-bridge setup.
 rem Run after start_bridge.bat. Prints the environment variables the
 rem bridge and its setup use, checks the local ports, and probes the
 rem MCP endpoint with curl (locally and through the Funnel URL).
-rem Secrets are shown as length only, never in full.
+rem Secrets are shown masked: first and last two characters plus length.
 
 setlocal EnableDelayedExpansion
 
@@ -68,7 +68,7 @@ exit /b 0
 if defined %~1 (
     set "V=!%~1!"
     call :strlen LEN V
-    echo %~1 = ^(set, length !LEN!, value hidden^)
+    echo %~1 = !V:~0,2!...!V:~-2! ^(length !LEN!^)
 ) else (
     echo %~1 = ^(not set^)
 )
