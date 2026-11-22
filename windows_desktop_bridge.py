@@ -299,7 +299,7 @@ def screenshot():
 
 
 @mcp.tool()
-def click(x, y):
+def click(x: int, y: int):
     """Left-click at pixel coordinates (x, y)."""
     require_connected()
     check_point(x, y)
@@ -308,7 +308,7 @@ def click(x, y):
 
 
 @mcp.tool()
-def double_click(x, y):
+def double_click(x: int, y: int):
     """Double left-click at pixel coordinates (x, y)."""
     require_connected()
     check_point(x, y)
@@ -339,7 +339,7 @@ def key(combo):
 
 
 @mcp.tool()
-def scroll(x, y, delta):
+def scroll(x: int, y: int, delta: int):
     """Scroll at pixel coordinates (x, y); positive delta scrolls up."""
     require_connected()
     check_point(x, y)
