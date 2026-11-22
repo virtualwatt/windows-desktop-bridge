@@ -298,6 +298,42 @@ def status():
     return {"connected": _connected}
 
 
+@mcp.tool()
+def obs_input_info():
+    """Debug: OBS inputs with their settings and device property lists.
+
+    Opens a short OBS WebSocket connection of its own, so it works
+    while disconnected. Read-only.
+    """
+    ws = _obs_connect()
+    try:
+        inputs = _obs_request(ws, "GetInputList").get("inputs", [])
+        result = []
+        for inp in inputs:
+            name = inp.get("inputName")
+            entry = {"inputName": name, "inputKind": inp.get("inputKind")}
+            try:
+                entry["settings"] = _obs_request(
+                    ws, "GetInputSettings", {"inputName": name}
+                ).get("inputSettings", {})
+            except RuntimeError as exc:
+                entry["settings_error"] = str(exc)
+            for prop in ("monitor_id", "monitor", "device_id"):
+                try:
+                    items = _obs_request(
+                        ws,
+                        "GetInputPropertiesListPropertyItems",
+                        {"inputName": name, "propertyName": prop},
+                    )
+                    entry[prop + "_items"] = items.get("propertyItems", [])
+                except RuntimeError as exc:
+                    entry[prop + "_error"] = str(exc)
+            result.append(entry)
+        return {"inputs": result}
+    finally:
+        ws.close()
+
+
 # --- Screen / mouse / keyboard tools (connected sessions only) ----------
 
 def screen_size():
