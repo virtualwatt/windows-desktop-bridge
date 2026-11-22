@@ -82,6 +82,16 @@ With OBS running and the bridge started:
 Only after this passes: expose it with a manually started cloudflared
 tunnel and register the connector on the Muse side.
 
+## Tailscale (alternative to a public tunnel)
+
+`install_tailscale.bat` installs Tailscale via Chocolatey (skipping
+it if already installed) and connects the machine to the tailnet
+(`tailscale up --unattended`; interactive browser login by default,
+or set `TAILSCALE_AUTHKEY` for unattended setup; optional
+`TAILSCALE_HOSTNAME`). Tailscale SSH stays off — Tailscale is only
+the transport. Note: the bridge currently binds `127.0.0.1` only, so
+reaching it over Tailscale also needs a bind change (separate step).
+
 ## Limits of this skeleton
 
 - Not yet run on Windows: pyautogui/mss paths are written for it but
