@@ -323,6 +323,11 @@ def obs_input_info():
                 ).get("inputSettings", {})
             except RuntimeError as exc:
                 entry["settings_error"] = str(exc)
+            for req, key in (("GetInputVolume", "volume"), ("GetInputMute", "mute")):
+                try:
+                    entry[key] = _obs_request(ws, req, {"inputName": name})
+                except RuntimeError as exc:
+                    entry[key + "_error"] = str(exc)
             for prop in ("monitor_id", "monitor", "device_id"):
                 try:
                     items = _obs_request(
@@ -334,7 +339,17 @@ def obs_input_info():
                 except RuntimeError as exc:
                     entry[prop + "_error"] = str(exc)
             result.append(entry)
-        return {"inputs": result}
+        scenes = []
+        for scene in _obs_request(ws, "GetSceneList").get("scenes", []):
+            name = scene.get("sceneName")
+            try:
+                items = _obs_request(
+                    ws, "GetSceneItemList", {"sceneName": name}
+                ).get("sceneItems", [])
+            except RuntimeError as exc:
+                items = [{"error": str(exc)}]
+            scenes.append({"sceneName": name, "items": items})
+        return {"inputs": result, "scenes": scenes}
     finally:
         ws.close()
 
