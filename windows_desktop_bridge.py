@@ -43,6 +43,7 @@ import pyautogui
 import uvicorn
 import websocket
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -52,7 +53,16 @@ from starlette.routing import Mount
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0.1
 
-mcp = FastMCP("windows-desktop-bridge")
+# DNS rebinding protection is off: by default FastMCP only allows
+# localhost Host headers and rejects tailnet addresses with 421.
+# The server binds only 127.0.0.1 or the Tailscale IP and requires
+# the Bearer token, so the Host check adds nothing here.
+mcp = FastMCP(
+    "windows-desktop-bridge",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
+    ),
+)
 
 # Session state. The OBS websocket stays open for the whole session so
 # disconnect can stop the recording on the same connection.
