@@ -1,0 +1,74 @@
+# Windows desktop bridge
+
+MCP server that lets Muse work in native Windows programs through
+screenshots, mouse clicks and keyboard input. Built for a Windows work
+computer where part of the work lives in a desktop client that the
+browser cannot reach.
+
+Status: skeleton, not yet run on Windows. Verified on the authoring
+machine: syntax (`py_compile`), bearer-token check, connect/disconnect
+gating and the OBS WebSocket command sequence against a fake socket.
+First real test happens on the target machine (smoke plan below).
+
+## Session model: connect / disconnect
+
+Every screen, mouse and keyboard tool works **only while connected**:
+
+- `connect(profile="")` opens the session. It switches OBS Studio to
+  the given profile (or `OBS_PROFILE`, or the current OBS profile) and
+  starts recording. If OBS is unreachable or refuses, `connect` fails
+  and no other tool works — there is no unrecorded work by accident.
+- `disconnect()` stops the OBS recording and locks all tools again.
+- `status()` reports whether a session is open; it works either way.
+
+Tools: `screenshot`, `click`, `double_click`, `type_text`, `key`,
+`scroll`, `list_windows`, `focus_window`.
+
+## OBS Studio setup (on the Windows machine)
+
+1. OBS Studio → Tools → WebSocket Server Settings → enable the server
+   (default port 4455). If you turn on authentication, note the
+   password.
+2. Create the recording profile you want (e.g. "Work") in OBS.
+3. Start OBS before connecting; the bridge only sends commands, it
+   does not launch OBS.
+
+## Run
+
+```powershell
+py -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+$env:BRIDGE_TOKEN = "<long random token generated on this machine>"
+$env:OBS_WS_PASSWORD = "<only if OBS auth is on>"
+$env:OBS_PROFILE = "Work"
+.venv\Scripts\python windows_desktop_bridge.py
+```
+
+The server binds to `127.0.0.1:8765`, Streamable HTTP at `POST /mcp`,
+and refuses to start without `BRIDGE_TOKEN`. The token never goes in
+chat or in a file; on the Muse side it is entered through the Secure
+Vault / connector credential flow.
+
+## Smoke test locally (before any tunnel)
+
+With OBS running and the bridge started:
+
+1. Request without the token → `401`.
+2. `tools/list` with the token → the tools above.
+3. `click` before `connect` → refused with "not connected".
+4. `connect` → OBS switches to the profile and starts recording.
+5. Open Notepad, `screenshot`, `focus_window("Notepad")`, `click`,
+   `type_text("hello")`, `screenshot` again — text is there.
+6. `disconnect` → OBS stops recording; `click` is refused again.
+
+Only after this passes: expose it with a manually started cloudflared
+tunnel and register the connector on the Muse side.
+
+## Limits of this skeleton
+
+- Not yet run on Windows: pyautogui/mss paths are written for it but
+  untested on the target machine.
+- Single monitor assumed for coordinates.
+- Keyboard input is English-layout text via `pyautogui.write()`.
+- No shell, no file access, no process control — by design.
+- pyautogui FAILSAFE stays on: mouse to a screen corner aborts.
