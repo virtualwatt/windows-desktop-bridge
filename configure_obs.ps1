@@ -57,18 +57,25 @@ $profileFile = Join-Path $profileDir "basic.ini"
 if (Test-Path $profileFile) {
     Write-Host "Profile '$ProfileName' already exists, left as is."
 } else {
+    # Use the primary screen's actual resolution for the profile.
+    Add-Type -AssemblyName System.Windows.Forms
+    $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+    $screenWidth = $bounds.Width
+    $screenHeight = $bounds.Height
+    Write-Host "Primary screen resolution: ${screenWidth}x${screenHeight}"
+
     New-Item -ItemType Directory -Force -Path $profileDir | Out-Null
     @"
 [General]
 Name=$ProfileName
 
 [Video]
-BaseCX=1920
-BaseCY=1080
-OutputCX=1920
-OutputCY=1080
+BaseCX=$screenWidth
+BaseCY=$screenHeight
+OutputCX=$screenWidth
+OutputCY=$screenHeight
 FPSType=0
-FPSCommon=30
+FPSCommon=10
 
 [Output]
 Mode=Simple
@@ -77,7 +84,7 @@ Mode=Simple
 RecFormat=mkv
 RecQuality=Small
 "@ | Set-Content -Encoding UTF8 $profileFile
-    Write-Host "Profile '$ProfileName' created."
+    Write-Host "Profile '$ProfileName' created (${screenWidth}x${screenHeight}, 10 fps)."
 }
 
 # --- 3. Scene collection: full screen + system audio ---------------------
