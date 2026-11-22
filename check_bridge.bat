@@ -7,6 +7,13 @@ rem Secrets are shown masked: first and last two characters plus length.
 
 setlocal EnableDelayedExpansion
 
+rem Load .env beside this file (real environment variables win).
+if exist "%~dp0.env" (
+    for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0.env") do (
+        if not defined %%a set "%%a=%%b"
+    )
+)
+
 echo === Environment ===
 call :show BRIDGE_HOST
 call :show OBS_WS_HOST

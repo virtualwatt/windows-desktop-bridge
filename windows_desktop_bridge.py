@@ -351,7 +351,26 @@ def focus_window(title_part):
     raise ValueError("no visible window with %r in the title" % title_part)
 
 
+def load_dotenv():
+    # Load KEY=VALUE lines from a .env file beside this script.
+    # Real environment variables win: the file only fills gaps.
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if not os.path.isfile(env_path):
+        return
+    with open(env_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key:
+                os.environ.setdefault(key, value)
+
+
 def main():
+    load_dotenv()
     token = os.environ.get("BRIDGE_TOKEN", "")
     if not token:
         raise SystemExit(
