@@ -352,6 +352,10 @@ def main():
     app = Starlette(
         routes=[Mount("/", app=mcp.streamable_http_app())],
         middleware=[Middleware(BearerAuthMiddleware, expected_token=token)],
+        # FastMCP's session manager needs its task group running;
+        # without this lifespan every request fails with
+        # "Task group is not initialized".
+        lifespan=lambda app: mcp.session_manager.run(),
     )
     # BRIDGE_HOST defaults to localhost. For Tailscale access, set it
     # to this machine's Tailscale IP (100.x.x.x) so the port is only
