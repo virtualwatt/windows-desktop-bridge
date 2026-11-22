@@ -1,0 +1,17 @@
+[project]
+name = "windows-desktop-bridge"
+version = "0.1.0"
+description = "MCP bridge for native Windows programs: screenshots, mouse, keyboard, OBS recording on connect/disconnect"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]",
+    "mss",
+    "pillow",
+    "pyautogui",
+    "starlette",
+    "uvicorn",
+    "websocket-client",
+]
+
+[tool.uv]
+package = false

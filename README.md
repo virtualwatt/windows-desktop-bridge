@@ -35,13 +35,15 @@ Tools: `screenshot`, `click`, `double_click`, `type_text`, `key`,
 
 ## Run
 
+Dependencies are managed with [uv](https://docs.astral.sh/uv/):
+`pyproject.toml` declares them, `uv.lock` pins exact versions.
+
 ```powershell
-py -m venv .venv
-.venv\Scripts\pip install -r requirements.txt
+uv sync
 $env:BRIDGE_TOKEN = "<long random token generated on this machine>"
 $env:OBS_WS_PASSWORD = "<only if OBS auth is on>"
 $env:OBS_PROFILE = "Work"
-.venv\Scripts\python windows_desktop_bridge.py
+uv run python windows_desktop_bridge.py
 ```
 
 The server binds to `127.0.0.1:8765`, Streamable HTTP at `POST /mcp`,
