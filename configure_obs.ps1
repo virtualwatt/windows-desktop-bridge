@@ -1,15 +1,16 @@
 # Configure OBS Studio for the Windows desktop bridge:
 #   1. WebSocket server enabled (plugin_config/obs-websocket/config.json)
 #   2. A recording profile (basic/profiles/<name>/basic.ini)
-#   3. A scene collection with full-screen capture + system audio
-#      (basic/scenes/<name>.json)
+# The recording scene itself (monitor capture + desktop audio) is
+# created by the bridge through the WebSocket API on first connect:
+# hand-written scene collection JSON proved too fragile (OBS silently
+# recorded an empty scene).
 # Existing files are checked first: the WebSocket config only gets
-# server_enabled/server_port ensured (existing password kept), the
-# scene collection is left alone, and the profile gets its resolution
-# corrected if it no longer matches the monitor (physical pixels,
-# DPI-aware; screens larger than Full HD prompt for full vs
-# downscaled recording). OBS must be closed while this runs; OBS
-# reads these files at startup.
+# server_enabled/server_port ensured (existing password kept), and
+# the profile gets its resolution corrected if it no longer matches
+# the monitor (physical pixels, DPI-aware; screens larger than Full
+# HD prompt for full vs downscaled recording). OBS must be closed
+# while this runs; OBS reads these files at startup.
 
 param(
     [string]$ProfileName = "Work",
@@ -134,168 +135,6 @@ RecFormat=mkv
 RecQuality=Small
 "@ | Set-Content -Encoding UTF8 $profileFile
     Write-Host "Profile '$ProfileName' created (base ${screenWidth}x${screenHeight}, output ${outputWidth}x${outputHeight}, 10 fps)."
-}
-
-# --- 3. Scene collection: full screen + system audio ---------------------
-$scenesDir = Join-Path $obsConfig "basic\scenes"
-$sceneFile = Join-Path $scenesDir "$ProfileName.json"
-New-Item -ItemType Directory -Force -Path $scenesDir | Out-Null
-
-if (Test-Path $sceneFile) {
-    Write-Host "Scene collection '$ProfileName' already exists, left as is."
-} else {
-    $displayUuid = [guid]::NewGuid().ToString()
-    $audioUuid = [guid]::NewGuid().ToString()
-    $sceneUuid = [guid]::NewGuid().ToString()
-
-    $collection = [ordered]@{
-        current_scene         = "Scene"
-        current_program_scene = "Scene"
-        scene_order           = @(@{ name = "Scene" })
-        name                  = $ProfileName
-        sources               = @(
-            [ordered]@{
-                prev_ver     = 503316480
-                name         = "Display Capture"
-                uuid         = $displayUuid
-                id           = "monitor_capture"
-                versioned_id = "monitor_capture"
-                settings     = @{ monitor = 0 }
-                mixers       = 255
-                sync         = 0
-                flags        = 0
-                volume       = 1.0
-                balance      = 0.5
-                enabled      = $true
-                muted        = $false
-                "push-to-mute"       = $false
-                "push-to-mute-delay" = 0
-                "push-to-talk"       = $false
-                "push-to-talk-delay" = 0
-                hotkeys      = @{}
-                deinterlace_mode        = 0
-                deinterlace_field_order = 0
-                monitoring_type = 0
-                private_settings = @{}
-            },
-            [ordered]@{
-                prev_ver     = 503316480
-                name         = "Desktop Audio"
-                uuid         = $audioUuid
-                id           = "wasapi_output_capture"
-                versioned_id = "wasapi_output_capture"
-                settings     = @{ device_id = "default" }
-                mixers       = 255
-                sync         = 0
-                flags        = 0
-                volume       = 1.0
-                balance      = 0.5
-                enabled      = $true
-                muted        = $false
-                "push-to-mute"       = $false
-                "push-to-mute-delay" = 0
-                "push-to-talk"       = $false
-                "push-to-talk-delay" = 0
-                hotkeys      = @{}
-                deinterlace_mode        = 0
-                deinterlace_field_order = 0
-                monitoring_type = 0
-                private_settings = @{}
-            },
-            [ordered]@{
-                prev_ver     = 503316480
-                name         = "Scene"
-                uuid         = $sceneUuid
-                id           = "scene"
-                versioned_id = "scene"
-                settings     = [ordered]@{
-                    id_counter  = 3
-                    custom_size = $false
-                    items       = @(
-                        [ordered]@{
-                            name        = "Display Capture"
-                            source_uuid = $displayUuid
-                            visible     = $true
-                            locked      = $false
-                            rot         = 0.0
-                            pos         = @{ x = 0.0; y = 0.0 }
-                            scale       = @{ x = 1.0; y = 1.0 }
-                            align       = 5
-                            bounds_type = 0
-                            bounds_align = 0
-                            bounds      = @{ x = 0.0; y = 0.0 }
-                            crop_left   = 0
-                            crop_top    = 0
-                            crop_right  = 0
-                            crop_bottom = 0
-                            id          = 1
-                            group_item_backup = $false
-                            pos_rel     = @{ x = 0.0; y = 0.0 }
-                            scale_rel   = @{ x = 1.0; y = 1.0 }
-                            bounds_rel  = @{ x = 0.0; y = 0.0 }
-                            scale_filter = "disable"
-                            blend_method = "default"
-                            blend_type   = "normal"
-                            show_transition = @{ duration = 0 }
-                            hide_transition = @{ duration = 0 }
-                            private_settings = @{}
-                        },
-                        [ordered]@{
-                            name        = "Desktop Audio"
-                            source_uuid = $audioUuid
-                            visible     = $true
-                            locked      = $false
-                            rot         = 0.0
-                            pos         = @{ x = 0.0; y = 0.0 }
-                            scale       = @{ x = 1.0; y = 1.0 }
-                            align       = 5
-                            bounds_type = 0
-                            bounds_align = 0
-                            bounds      = @{ x = 0.0; y = 0.0 }
-                            crop_left   = 0
-                            crop_top    = 0
-                            crop_right  = 0
-                            crop_bottom = 0
-                            id          = 2
-                            group_item_backup = $false
-                            pos_rel     = @{ x = 0.0; y = 0.0 }
-                            scale_rel   = @{ x = 1.0; y = 1.0 }
-                            bounds_rel  = @{ x = 0.0; y = 0.0 }
-                            scale_filter = "disable"
-                            blend_method = "default"
-                            blend_type   = "normal"
-                            show_transition = @{ duration = 0 }
-                            hide_transition = @{ duration = 0 }
-                            private_settings = @{}
-                        }
-                    )
-                }
-                mixers       = 0
-                sync         = 0
-                flags        = 0
-                volume       = 1.0
-                balance      = 0.5
-                enabled      = $true
-                muted        = $false
-                "push-to-mute"       = $false
-                "push-to-mute-delay" = 0
-                "push-to-talk"       = $false
-                "push-to-talk-delay" = 0
-                hotkeys      = @{}
-                deinterlace_mode        = 0
-                deinterlace_field_order = 0
-                monitoring_type = 0
-                private_settings = @{}
-            }
-        )
-        groups                = @()
-        transitions           = @()
-        transition_duration   = 300
-        current_transition    = "Fade"
-    }
-
-    $collection | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $sceneFile
-    Write-Host "Scene collection '$ProfileName' created (full screen + system audio)."
 }
 
 Write-Host "OBS configuration done."

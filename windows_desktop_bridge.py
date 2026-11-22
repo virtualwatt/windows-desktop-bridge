@@ -168,6 +168,45 @@ def _obs_request(ws, request_type, request_data=None):
             return message["d"].get("responseData", {})
 
 
+def _ensure_scene(ws, scene_name):
+    # Make sure the recording scene exists with a monitor capture and
+    # desktop audio, and is the program scene. Created through the
+    # WebSocket API because hand-written scene collection files are
+    # too easy to get subtly wrong (OBS then silently ignores them
+    # and records an empty scene).
+    scenes = _obs_request(ws, "GetSceneList")
+    scene_names = [s.get("sceneName") for s in scenes.get("scenes", [])]
+    if scene_name not in scene_names:
+        _obs_request(ws, "CreateScene", {"sceneName": scene_name})
+    inputs = _obs_request(ws, "GetInputList")
+    input_names = [i.get("inputName") for i in inputs.get("inputs", [])]
+    if "Monitor" not in input_names:
+        _obs_request(
+            ws,
+            "CreateInput",
+            {
+                "sceneName": scene_name,
+                "inputName": "Monitor",
+                "inputKind": "monitor_capture",
+                "inputSettings": {},
+                "sceneItemEnabled": True,
+            },
+        )
+    if "Desktop Audio" not in input_names:
+        _obs_request(
+            ws,
+            "CreateInput",
+            {
+                "sceneName": scene_name,
+                "inputName": "Desktop Audio",
+                "inputKind": "wasapi_output_capture",
+                "inputSettings": {},
+                "sceneItemEnabled": True,
+            },
+        )
+    _obs_request(ws, "SetCurrentProgramScene", {"sceneName": scene_name})
+
+
 # --- Session tools ------------------------------------------------------
 
 @mcp.tool()
@@ -187,6 +226,7 @@ def connect(profile=""):
     try:
         if chosen:
             _obs_request(ws, "SetCurrentProfile", {"profileName": chosen})
+        _ensure_scene(ws, chosen or "Work")
         _obs_request(ws, "StartRecord")
     except Exception:
         ws.close()
