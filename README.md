@@ -33,7 +33,10 @@ manual clicks (OBS must be closed while it runs):
    `%APPDATA%\obs-studio\plugin_config\obs-websocket\config.json`
    (port 4455; an existing password is kept).
 2. Creates the recording profile (`basic\profiles\<name>\basic.ini`)
-   if it does not exist yet.
+   if it does not exist yet; on re-runs it corrects the profile's
+   resolution if it no longer matches the monitor (physical pixels,
+   DPI-aware). Screens larger than Full HD prompt on the console:
+   record full native resolution or downscale to Full HD.
 3. Creates a scene collection (`basic\scenes\<name>.json`) with
    full-screen capture + system audio if it does not exist yet.
 
