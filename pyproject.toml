@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "MCP bridge for native Windows programs: screenshots, mouse, keyboard, OBS recording on connect/disconnect"
 requires-python = ">=3.12"
 dependencies = [
-    "mcp[cli]",
+    "mcp[cli]<2",
     "mss",
     "pillow",
     "pyautogui",
