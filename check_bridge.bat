@@ -48,12 +48,12 @@ set "DNSNAME="
 powershell -NoProfile -Command "try { (tailscale status --json | ConvertFrom-Json).Self.DNSName.TrimEnd('.') } catch { '' }" > "%TEMP%\bridge-dnsname.txt" 2>nul
 if exist "%TEMP%\bridge-dnsname.txt" set /p DNSNAME=<"%TEMP%\bridge-dnsname.txt"
 if not defined DNSNAME (
-    echo Could not get the MagicDNS name (Tailscale not up?) - skipping.
+    echo Could not get the MagicDNS name - Tailscale not up? Skipping.
     goto :done
 )
 echo Funnel URL: https://%DNSNAME%/mcp
 if defined BRIDGE_TOKEN (
-    curl -s -o nul -w "with token:    HTTP %%{http_code} (expect 200)\n" --ssl-no-revoke -X POST https://%DNSNAME%/mcp -H "Authorization: Bearer %BRIDGE_TOKEN%" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"check\",\"version\":\"1\"}}}"
+    curl -s -o nul -w "with token:    HTTP %%{http_code} - expect 200\n" --ssl-no-revoke -X POST https://%DNSNAME%/mcp -H "Authorization: Bearer %BRIDGE_TOKEN%" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"check\",\"version\":\"1\"}}}"
 ) else (
     echo BRIDGE_TOKEN not set - skipping the Funnel probe too.
 )
