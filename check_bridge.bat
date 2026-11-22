@@ -45,7 +45,8 @@ curl -s -o nul -w "with token:    HTTP %%{http_code} (expect 200)\n" -X POST htt
 echo.
 echo === Funnel probe ===
 set "DNSNAME="
-for /f "delims=" %%i in ('powershell -NoProfile -Command "try { (tailscale status --json | ConvertFrom-Json).Self.DNSName.TrimEnd('.') } catch { '' }"') do set "DNSNAME=%%i"
+powershell -NoProfile -Command "try { (tailscale status --json | ConvertFrom-Json).Self.DNSName.TrimEnd('.') } catch { '' }" > "%TEMP%\bridge-dnsname.txt" 2>nul
+if exist "%TEMP%\bridge-dnsname.txt" set /p DNSNAME=<"%TEMP%\bridge-dnsname.txt"
 if not defined DNSNAME (
     echo Could not get the MagicDNS name (Tailscale not up?) - skipping.
     goto :done
