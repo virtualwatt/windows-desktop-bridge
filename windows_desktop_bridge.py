@@ -220,30 +220,35 @@ def _ensure_scene(ws, scene_name):
         _obs_request(ws, "CreateScene", {"sceneName": scene_name})
     inputs = _obs_request(ws, "GetInputList")
     input_names = [i.get("inputName") for i in inputs.get("inputs", [])]
-    if "Monitor" not in input_names:
-        _obs_request(
-            ws,
-            "CreateInput",
-            {
-                "sceneName": scene_name,
-                "inputName": "Monitor",
-                "inputKind": "monitor_capture",
-                "inputSettings": {},
-                "sceneItemEnabled": True,
-            },
-        )
-    if "Desktop Audio" not in input_names:
-        _obs_request(
-            ws,
-            "CreateInput",
-            {
-                "sceneName": scene_name,
-                "inputName": "Desktop Audio",
-                "inputKind": "wasapi_output_capture",
-                "inputSettings": {},
-                "sceneItemEnabled": True,
-            },
-        )
+    items = _obs_request(ws, "GetSceneItemList", {"sceneName": scene_name})
+    item_names = [i.get("sourceName") for i in items.get("sceneItems", [])]
+    # An input can exist globally yet be missing from this scene
+    # (e.g. left in another scene): then add it as a scene item
+    # instead of creating it again.
+    for input_name, input_kind in (
+        ("Monitor", "monitor_capture"),
+        ("Desktop Audio", "wasapi_output_capture"),
+    ):
+        if input_name in item_names:
+            continue
+        if input_name in input_names:
+            _obs_request(
+                ws,
+                "CreateSceneItem",
+                {"sceneName": scene_name, "sourceName": input_name},
+            )
+        else:
+            _obs_request(
+                ws,
+                "CreateInput",
+                {
+                    "sceneName": scene_name,
+                    "inputName": input_name,
+                    "inputKind": input_kind,
+                    "inputSettings": {},
+                    "sceneItemEnabled": True,
+                },
+            )
     _ensure_input_setting(ws, "Monitor", ["monitor_id", "monitor"])
     _ensure_input_setting(ws, "Desktop Audio", ["device_id"], preferred="default")
     _obs_request(ws, "SetCurrentProgramScene", {"sceneName": scene_name})
