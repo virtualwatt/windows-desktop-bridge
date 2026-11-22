@@ -27,6 +27,19 @@ rem set OBS_WS_PASSWORD=
 rem set OBS_WS_HOST=127.0.0.1
 rem set OBS_WS_PORT=4455
 
+rem --- OBS --------------------------------------------------------------
+rem Launch OBS minimized with the bridge profile and scene collection
+rem if it is not already running. Working directory must be the folder
+rem containing obs64.exe.
+tasklist /FI "IMAGENAME eq obs64.exe" 2>nul | find /I "obs64.exe" >nul
+if %errorlevel% equ 0 (
+    echo OBS is already running.
+) else (
+    echo Starting OBS with profile %OBS_PROFILE%...
+    start "" /D "%ProgramFiles%\obs-studio\bin\64bit" "%ProgramFiles%\obs-studio\bin\64bit\obs64.exe" --profile "%OBS_PROFILE%" --collection "%OBS_PROFILE%" --minimize-to-tray --disable-updater
+    timeout /t 5 /nobreak >nul
+)
+
 rem --- Run ------------------------------------------------------------
 echo Starting bridge on http://127.0.0.1:8765/mcp (OBS profile: %OBS_PROFILE%)
 uv run python windows_desktop_bridge.py

@@ -26,12 +26,21 @@ Tools: `screenshot`, `click`, `double_click`, `type_text`, `key`,
 
 ## OBS Studio setup (on the Windows machine)
 
-1. OBS Studio → Tools → WebSocket Server Settings → enable the server
-   (default port 4455). If you turn on authentication, note the
-   password.
-2. Create the recording profile you want (e.g. "Work") in OBS.
-3. Start OBS before connecting; the bridge only sends commands, it
-   does not launch OBS.
+`install_bridge.bat` runs `configure_obs.ps1`, which does this without
+manual clicks (OBS must be closed while it runs):
+
+1. Enables the WebSocket server in
+   `%APPDATA%\obs-studio\plugin_config\obs-websocket\config.json`
+   (port 4455; an existing password is kept).
+2. Creates the recording profile (`basic\profiles\<name>\basic.ini`)
+   if it does not exist yet.
+3. Creates a scene collection (`basic\scenes\<name>.json`) with
+   full-screen capture + system audio if it does not exist yet.
+
+`start_bridge.bat` launches OBS minimized with that profile and scene
+collection (`--profile`, `--collection`, `--minimize-to-tray`) if OBS
+is not already running. The bridge itself only sends commands; it
+does not launch OBS.
 
 ## Run
 

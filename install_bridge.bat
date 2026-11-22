@@ -82,10 +82,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
+rem --- OBS configuration ------------------------------------------------------
+rem Enables the WebSocket server and creates the recording profile and
+rem scene collection (full screen + system audio) if they do not exist.
+rem OBS must be closed for this; configure_obs.ps1 checks that.
+if "%OBS_PROFILE%"=="" set OBS_PROFILE=Work
+echo Configuring OBS (profile: %OBS_PROFILE%)...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0configure_obs.ps1" -ProfileName "%OBS_PROFILE%"
+if errorlevel 1 (
+    echo OBS configuration failed.
+    pause
+    exit /b 1
+)
+
 echo.
 echo Installation complete. Next steps:
-echo   1. In OBS: Tools - WebSocket Server Settings - enable the server,
-echo      create the recording profile (default name in start_bridge.bat: Work).
-echo   2. Set the bridge token once:  setx BRIDGE_TOKEN "your-long-random-token"
-echo   3. Start the bridge with start_bridge.bat
+echo   1. Set the bridge token once:  setx BRIDGE_TOKEN "your-long-random-token"
+echo   2. Start the bridge with start_bridge.bat (it launches OBS with the profile)
 pause
