@@ -70,6 +70,15 @@ and refuses to start without `BRIDGE_TOKEN`. The token never goes in
 chat or in a file; on the Muse side it is entered through the Secure
 Vault / connector credential flow.
 
+## Diagnostics
+
+`check_bridge.bat` — run it after starting the bridge. It prints the
+environment variables the bridge and its setup use (secrets as length
+only), checks that ports 8765 (bridge) and 4455 (OBS WebSocket) are
+listening, and probes the MCP endpoint with curl: locally without a
+token (expect 401), locally with the token (expect 200), and through
+the Funnel URL with the token (expect 200).
+
 ## Smoke test locally (before any tunnel)
 
 With OBS running and the bridge started:
