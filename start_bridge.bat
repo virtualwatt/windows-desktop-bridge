@@ -6,14 +6,21 @@ rem and syncs dependencies). This file only starts the server.
 cd /d "%~dp0"
 
 rem --- Settings -------------------------------------------------------
+rem Settings come from a .env file in this folder (see .env.example)
+rem or from real environment variables, which win over the file.
 rem BRIDGE_TOKEN must match the token entered on the Muse side
-rem (Secure Vault / connector credential flow). Set it once for your
-rem Windows user, e.g.:  setx BRIDGE_TOKEN "<long random token>"
-rem Do not write the real token into this file.
+rem (Secure Vault / connector credential flow). Never commit .env.
+
+if exist "%~dp0.env" (
+    for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%~dp0.env") do (
+        if not defined %%a set "%%a=%%b"
+    )
+)
 
 if "%BRIDGE_TOKEN%"=="" (
     echo BRIDGE_TOKEN is not set.
-    echo Generate a long random token on this machine and set it once:
+    echo Copy .env.example to .env in this folder and fill in a long
+    echo random token ^(e.g. openssl rand -hex 32^), or set it once:
     echo   setx BRIDGE_TOKEN "your-long-random-token"
     echo then open a new terminal and run this file again.
     pause
