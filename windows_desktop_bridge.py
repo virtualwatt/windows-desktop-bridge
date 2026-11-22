@@ -1,7 +1,8 @@
 # Windows desktop bridge: MCP server that lets Muse work in native
 # Windows programs through screenshots, mouse clicks and keyboard input.
 #
-# Transport: Streamable HTTP, POST /mcp, bound to 127.0.0.1 only.
+# Transport: Streamable HTTP, POST /mcp. Bind host from BRIDGE_HOST
+# (default 127.0.0.1; set to the Tailscale IP for tailnet access).
 # Expose it outside the machine with a cloudflared tunnel started
 # manually on that machine; this server never starts the tunnel itself.
 #
@@ -352,7 +353,11 @@ def main():
         routes=[Mount("/", app=mcp.streamable_http_app())],
         middleware=[Middleware(BearerAuthMiddleware, expected_token=token)],
     )
-    uvicorn.run(app, host="127.0.0.1", port=8765)
+    # BRIDGE_HOST defaults to localhost. For Tailscale access, set it
+    # to this machine's Tailscale IP (100.x.x.x) so the port is only
+    # reachable inside the tailnet, never on the LAN or internet.
+    host = os.environ.get("BRIDGE_HOST", "127.0.0.1")
+    uvicorn.run(app, host=host, port=8765)
 
 
 if __name__ == "__main__":

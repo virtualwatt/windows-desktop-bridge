@@ -89,8 +89,11 @@ it if already installed) and connects the machine to the tailnet
 (`tailscale up --unattended`; interactive browser login by default,
 or set `TAILSCALE_AUTHKEY` for unattended setup; optional
 `TAILSCALE_HOSTNAME`). Tailscale SSH stays off — Tailscale is only
-the transport. Note: the bridge currently binds `127.0.0.1` only, so
-reaching it over Tailscale also needs a bind change (separate step).
+the transport. The bridge binds the host from `BRIDGE_HOST`
+(default `127.0.0.1`); `start_bridge.bat` sets it to this machine's
+Tailscale IP when Tailscale is up, so the port is reachable only
+inside the tailnet. Muse then connects to
+`http://<tailscale-ip>:8765/mcp` from inside the same tailnet.
 
 ## Limits of this skeleton
 

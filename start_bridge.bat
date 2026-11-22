@@ -40,7 +40,16 @@ if %errorlevel% equ 0 (
     timeout /t 5 /nobreak >nul
 )
 
+rem --- Bind address -----------------------------------------------------
+rem Default: localhost only. If Tailscale is up, bind to this machine's
+rem Tailscale IP instead, so the bridge is reachable inside the tailnet
+rem (and only there). Set BRIDGE_HOST manually to override.
+if "%BRIDGE_HOST%"=="" (
+    for /f "delims=" %%i in ('tailscale ip -4 2^>nul') do set BRIDGE_HOST=%%i
+)
+if "%BRIDGE_HOST%"=="" set BRIDGE_HOST=127.0.0.1
+
 rem --- Run ------------------------------------------------------------
-echo Starting bridge on http://127.0.0.1:8765/mcp (OBS profile: %OBS_PROFILE%)
+echo Starting bridge on http://%BRIDGE_HOST%:8765/mcp (OBS profile: %OBS_PROFILE%)
 uv run python windows_desktop_bridge.py
 pause
