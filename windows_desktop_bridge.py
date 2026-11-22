@@ -168,6 +168,41 @@ def _obs_request(ws, request_type, request_data=None):
             return message["d"].get("responseData", {})
 
 
+def _ensure_input_setting(ws, input_name, property_names, preferred=None):
+    # A freshly created capture input has no device selected and
+    # records black. Pick the first listed device (or the preferred
+    # value when offered) and set it, unless one is already set.
+    settings = _obs_request(ws, "GetInputSettings", {"inputName": input_name})
+    current = settings.get("inputSettings", {})
+    for prop in property_names:
+        if current.get(prop):
+            return
+    for prop in property_names:
+        try:
+            items = _obs_request(
+                ws,
+                "GetInputPropertiesListPropertyItems",
+                {"inputName": input_name, "propertyName": prop},
+            )
+        except RuntimeError:
+            continue
+        values = [i.get("itemValue") for i in items.get("propertyItems", [])]
+        values = [v for v in values if v not in (None, "")]
+        if not values:
+            continue
+        chosen = preferred if preferred in values else values[0]
+        _obs_request(
+            ws,
+            "SetInputSettings",
+            {"inputName": input_name, "inputSettings": {prop: chosen}},
+        )
+        return
+    raise RuntimeError(
+        "could not select a device for input %r (tried %s)"
+        % (input_name, ", ".join(property_names))
+    )
+
+
 def _ensure_scene(ws, scene_name):
     # Make sure the recording scene exists with a monitor capture and
     # desktop audio, and is the program scene. Created through the
@@ -204,6 +239,8 @@ def _ensure_scene(ws, scene_name):
                 "sceneItemEnabled": True,
             },
         )
+    _ensure_input_setting(ws, "Monitor", ["monitor_id", "monitor"])
+    _ensure_input_setting(ws, "Desktop Audio", ["device_id"], preferred="default")
     _obs_request(ws, "SetCurrentProgramScene", {"sceneName": scene_name})
 
 
