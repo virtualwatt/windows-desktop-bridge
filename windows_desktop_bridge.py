@@ -175,7 +175,8 @@ def _ensure_input_setting(ws, input_name, property_names, preferred=None):
     settings = _obs_request(ws, "GetInputSettings", {"inputName": input_name})
     current = settings.get("inputSettings", {})
     for prop in property_names:
-        if current.get(prop):
+        # "DUMMY" is OBS's placeholder for "no display selected".
+        if current.get(prop) not in (None, "", "DUMMY"):
             return
     for prop in property_names:
         try:
@@ -186,8 +187,12 @@ def _ensure_input_setting(ws, input_name, property_names, preferred=None):
             )
         except RuntimeError:
             continue
-        values = [i.get("itemValue") for i in items.get("propertyItems", [])]
-        values = [v for v in values if v not in (None, "")]
+        values = [
+            i.get("itemValue")
+            for i in items.get("propertyItems", [])
+            if i.get("itemEnabled", True)
+        ]
+        values = [v for v in values if v not in (None, "", "DUMMY")]
         if not values:
             continue
         chosen = preferred if preferred in values else values[0]
